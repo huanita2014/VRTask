@@ -20,4 +20,7 @@ class VRTASK_API IVRTInteractableInterface
 protected:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void TriggerPressed();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void TriggerReleased();
 };

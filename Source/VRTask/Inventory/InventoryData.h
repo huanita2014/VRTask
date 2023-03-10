@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "InventoryData.generated.h"
 
 USTRUCT(BlueprintType)
 struct FItemData
