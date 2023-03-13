@@ -3,6 +3,8 @@
 
 #include "VRTHealthComponent.h"
 
+#include "VRTask/VRTPawn.h"
+
 UVRTHealthComponent::UVRTHealthComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -15,7 +17,12 @@ void UVRTHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Health = MaxHealth;
+	if (StartingHealth <= 0.0f)
+	{
+		StartingHealth = MaxHealth;
+	}
+
+	CurrentHealth = StartingHealth;
 
 }
 
@@ -26,5 +33,37 @@ void UVRTHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+float UVRTHealthComponent::GetCurrentHealthPercent()
+{
+	return (CurrentHealth / MaxHealth);
+}
+
+void UVRTHealthComponent::ApplyDamage(float Damage)
+{
+	if (bIsDead)
+	{
+		return;
+	}
+	
+	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, MinHealth, MaxHealth);
+
+	if (CurrentHealth == MinHealth)
+	{
+		Death();
+	}
+
+	OnHealthUpdatedDelegate.Broadcast(CurrentHealth);
+}
+
+void UVRTHealthComponent::Death()
+{
+	bIsDead = true;
+
+	if (OnDeath.IsBound())
+	{
+		OnDeath.Broadcast(GetOwner());
+	}
 }
 

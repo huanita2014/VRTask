@@ -7,6 +7,7 @@
 #include "Components/WidgetComponent.h"
 #include "VRTWeaponAmmoWidget.h"
 #include "Kismet/GameplayStatics.h"
+#include "VRTask/VRTaskBlueprintFunctionLibrary.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogWeapon, All, All);
 
@@ -114,12 +115,7 @@ const FTransform AVRTWeaponBaseActor::GetMuzzleTransform() const
 
 APlayerController* AVRTWeaponBaseActor::GetPlayerController() const
 {
-	const APawn* PlayerPawn = Cast<APawn>(GetOwner());
-	if (PlayerPawn)
-	{
-		return Cast<APlayerController>(PlayerPawn->GetController());
-	}
-	return nullptr;
+	return UVRTaskBlueprintFunctionLibrary::GetLocalPlayerController(this);
 }
 
 void AVRTWeaponBaseActor::PlayHapticEffect(UHapticFeedbackEffect_Base* InHapticEffect) const
@@ -153,24 +149,46 @@ void AVRTWeaponBaseActor::Fire()
 		WeaponAmmoWidget->UpdateAmmo(Ammo);
 	}
 	
-	if (MuzzleEffect)
-	{
-		UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, WeaponMeshComponent, MuzzleSocketName);
-	}
-
-	if (FireSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), FireSound, GetActorLocation());
-	}
-
+	PlayFireEffect();
 	PlayHapticEffect(FireHapticEffect);
+	
+	
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.bTraceComplex = true;
+	QueryParams.bReturnPhysicalMaterial = true;
+
+	const FTransform MuzzleTransform = GetMuzzleTransform();
+
+	const FVector TraceStart = MuzzleTransform.GetLocation();
+	const FVector ShootingDirection = MuzzleTransform.GetRotation().Vector();
+	const FVector TraceEnd = TraceStart + ShootingDirection * TraceMaxDistance;
+
+	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Emerald, false, 0.1f);
+
+	FHitResult Hit;
+	PlayFireEffect();
+
+	if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, QueryParams))
+	{
+		// add damage
+		AActor* HitActor = Hit.GetActor();
+
+		float ActualDamage = BaseDamage;
+
+		UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShootingDirection, Hit, GetPlayerController(), this, DamageType);
+
+		PlayImpactEffect(Hit.ImpactPoint);
+	}
 }
 
 void AVRTWeaponBaseActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	DrawTraceLine();
+	//DrawTraceLine();
+
+	
 
 }
 

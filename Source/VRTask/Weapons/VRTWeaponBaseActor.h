@@ -4,7 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../Interfaces/VRTInteractableInterface.h"
+#include "VRTask//Interfaces/VRTInteractableInterface.h"
+#include "VRTask/VRTPickupActor.h"
 #include "VRTWeaponBaseActor.generated.h"
 
 class USkeletalMeshComponent;
@@ -22,7 +23,7 @@ enum class EFiringMode : uint8
 };
 
 UCLASS()
-class VRTASK_API AVRTWeaponBaseActor : public AActor, public IVRTInteractableInterface
+class VRTASK_API AVRTWeaponBaseActor : public AVRTPickupActor, public IVRTInteractableInterface
 {
 	GENERATED_BODY()
 	
@@ -79,6 +80,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon params")
 	UHapticFeedbackEffect_Base* FireHapticEffect;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon params")
+	TSubclassOf<UDamageType> DamageType;
 
 	// VRTInteractableInterface
 	void TriggerPressed_Implementation() override;
