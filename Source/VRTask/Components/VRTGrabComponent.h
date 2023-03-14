@@ -10,14 +10,8 @@
  * Basically the C++ clone of Unreal VR template GrabComponent with some unused logic cut
  */
 
-UENUM(BlueprintType)
-enum class EGrabbingType : uint8
-{
-	Free,
-	Snap
-};
-
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+class UMotionControllerComponent;
+UCLASS( Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VRTASK_API UVRTGrabComponent : public USceneComponent
 {
 	GENERATED_BODY()
@@ -25,21 +19,9 @@ class VRTASK_API UVRTGrabComponent : public USceneComponent
 public:	
 	UVRTGrabComponent();
 
-	
-	void TryGrab();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Game")
+	bool TryGrab(UMotionControllerComponent* InMotionController);
 
-protected:
-	virtual void BeginPlay() override;
-
-	UPROPERTY()
-	class UMotionControllerComponent* MotionController;
-
-private:
-	bool bIsHeld;
-
-	EGrabbingType GrabType;
-
-	void SetPrimitiveComponentPhysics(bool bSimulate) const;
-
-	void AttachParentToMotionController(UMotionControllerComponent* InMotionController);
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Game")
+	bool TryRelease();
 };

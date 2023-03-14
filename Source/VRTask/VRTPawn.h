@@ -6,9 +6,13 @@
 #include "GameFramework/Pawn.h"
 #include "VRTPawn.generated.h"
 
+class UVRTGrabComponent;
+class UMotionControllerComponent;
 class UVRTPlayerHUDComponent;
 class UVRTInventoryComponent;
 class UVRTHealthComponent;
+class UCameraComponent;
+class UBoxComponent;
 
 UCLASS()
 class VRTASK_API AVRTPawn : public APawn
@@ -16,7 +20,6 @@ class VRTASK_API AVRTPawn : public APawn
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this pawn's properties
 	AVRTPawn();
 	
 	UVRTHealthComponent* GetHealthComponent()
@@ -25,11 +28,19 @@ public:
 	}
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	USceneComponent* DefaultRootComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UMotionControllerComponent* MotionControllerLeft;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UMotionControllerComponent* MotionControllerRight;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health")
 	UVRTHealthComponent* HealthComponent;
@@ -40,14 +51,30 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
 	UVRTPlayerHUDComponent* HUDComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* BackpackComponent;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UBoxComponent* MotionControllerLeftCollision;
 
-	// Called to bind functionality to input
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	UBoxComponent* MotionControllerRightCollision;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Feedback")
+	UHapticFeedbackEffect_Base* BackpackHapticEffect;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Game")
+	UVRTGrabComponent* HeldComponentLeft;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Game")
+	UVRTGrabComponent* HeldComponentRight;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void TryAddHeldPickupToInventory(UVRTGrabComponent* HeldComponent);
+
+public:	
+	virtual void Tick(float DeltaTime) override;
+	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
@@ -61,8 +88,6 @@ private:
 	UFUNCTION()
 	void HandleDeath(AActor* DeadActor);
 
-	bool bBackPackActive;
-
 	UFUNCTION()
 	void OnBackPackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 							UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
@@ -71,4 +96,7 @@ private:
 	UFUNCTION()
 	void OnBackPackEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 							UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UPROPERTY()
+	UVRTGrabComponent* HeldComponentNearBackpack;
 };
